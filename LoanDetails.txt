@@ -1,0 +1,26 @@
+HDR|LoanDetails|20250515|Start
+10001Sarah Adams         624580  276956.48 Home Loan           14-05-2024
+10002Gabriel Clark       411989  236183.27 Home Loan           12-04-2025
+10005Brandon Rivera      491784  160844.91 Educational Loan    20-10-2023
+10008Sara Shepherd       831543  344907.72 Home Loan           19-05-2021
+10010David Conway        742298  379211.69 Personal Loan       07-04-2021
+10012Angel Murillo       414641  164860.35 Home Loan           14-05-2021
+10020Gregory Sanchez     889704  434031.58 Home Loan           02-01-2023
+10022Barbara Dixon       798415  275341.64 Personal Loan       20-05-2020
+10023Fernando Griffith   465326  154715.74 Personal Loan       26-04-2023
+10025Devon Green         316623  229224.36 Educational Loan    06-12-2023
+10026Marc Williams       643372   32775.49 Educational Loan    23-05-2023
+10027Lori Wallace        584081  463257.94 Educational Loan    14-06-2022
+10030Shawn Coleman       984151   79609.69 Business Loan       08-06-2024
+10032Patricia Stanley MD 493535  175599.37 Business Loan       29-11-2023
+10033Anne Ortiz          285183  351703.65 Home Loan           25-09-2021
+10034Alexandra Flowers   365993  423629.41 Educational Loan    24-04-2021
+10037Joseph Clark        387444  444216.66 Business Loan       07-09-2024
+10039Gregory Burch       259131   19358.82 Home Loan           21-01-2023
+10041Angela Powell       230875  337141.82 Home Loan           25-09-2023
+10043Denise Mitchell     539314  101431.56 Business Loan       17-08-2022
+10044Victoria Sanchez    781621  297555.09 Business Loan       25-08-2020
+10047Bradley Franklin    115629  479606.44 Personal Loan       25-01-2022
+10048Patrick Walker      391863   55181.30 Personal Loan       06-12-2020
+10049Kimberly Dougherty  452925   48048.05 Home Loan           15-06-2022
+TRL|LoanDetails|23|End

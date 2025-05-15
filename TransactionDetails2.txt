@@ -1,0 +1,7 @@
+HDR|TransactionDetails2|20250516|Start
+10050Sample Name0        39644956744216668UPI                        65419.45  15-05-2025 & 05:32:13
+10051Sample Name1        78887537783330283NEFT                       34739.51  15-05-2025 & 05:32:13
+10052Sample Name2        20583562675701551RTGS                       29630.14  15-05-2025 & 05:32:13
+10053Sample Name3        16196174461901794digital cards              44629.21  15-05-2025 & 05:32:13
+10054Sample Name4        23499463987682586ATM Transactions           72555.96  15-05-2025 & 05:32:13
+TRL|TransactionDetails2|5|End
