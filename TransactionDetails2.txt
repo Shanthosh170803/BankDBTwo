@@ -5,3 +5,53 @@ HDR|TransactionDetails2|20250516|Start
 10053Sample Name3        16196174461901794digital cards              44629.21  15-05-2025 & 05:32:13
 10054Sample Name4        23499463987682586ATM Transactions           72555.96  15-05-2025 & 05:32:13
 TRL|TransactionDetails2|5|End
+
+
+import java.io.*;
+import java.nio.file.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+public class FileOrganizer {
+
+    public static void main(String[] args) throws IOException {
+        String baseDir = "Bank";
+        String controlDir = baseDir + "/Control";
+
+        Map<String, List<File>> dateToFileMap = new TreeMap<>();
+
+        File bankDir = new File(baseDir);
+        for (File subFolder : bankDir.listFiles()) {
+            if (subFolder.isDirectory() && !subFolder.getName().equals("Control")) {
+                for (File file : subFolder.listFiles((d, name) -> name.endsWith(".txt"))) {
+                    String header = Files.lines(file.toPath()).findFirst().orElse(null);
+                    if (header != null && header.startsWith("HDR|")) {
+                        String[] parts = header.split("\\|");
+                        if (parts.length >= 3) {
+                            String dateStr = parts[2];
+                            dateToFileMap.computeIfAbsent(dateStr, k -> new ArrayList<>()).add(file);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create folders and copy files
+        for (String dateStr : dateToFileMap.keySet()) {
+            LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String folderName = "Control" + date.getMonth().name().substring(0, 1).toUpperCase() +
+                                date.getMonth().name().substring(1).toLowerCase() + date.getDayOfMonth();
+
+            Path targetDir = Paths.get(controlDir, folderName);
+            Files.createDirectories(targetDir);
+
+            for (File file : dateToFileMap.get(dateStr)) {
+                Path targetFile = targetDir.resolve(file.getName());
+                Files.copy(file.toPath(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+
+        System.out.println("Files copied and organized by header dates.");
+    }
+}
