@@ -1,0 +1,52 @@
+HDR|CustomerDetails|20250515|Start
+10000Kristin Williams    Others141019786226979387kristinwilliams798@gmail.com  Flat No. 196, Angela Estates, 
+10001Sarah Adams         Others030619981597111971sarahadams325@gmail.com       Street No. 215, Martin Hollow,
+10002Gabriel Clark       Female040320010201375965gabrielclark@gmail.com        Door No. 961, Destiny Canyon, 
+10003Jacqueline Cooper   Female030520013719386734jacquelinecooper@gmail.com    Flat No. 269, Leslie Vista, Ro
+10004Taylor Evans        Others210319928207150380taylorevans@gmail.com         Street No. 95, Desiree Plaza, 
+10005Brandon Rivera      Male  180519622163207847brandonrivera@gmail.com       Door No. 574, Joel Cape, Hoffm
+10006Ian Clark           Female300419827054674661ianclark@gmail.com            Flat No. 559, Lowe Court, West
+10007Brianna Ramirez     Others190419641148935452briannaramirez@gmail.com      Flat No. 755, James Street, La
+10008Sara Shepherd       Male  140219901997417592sarashepherd@gmail.com        Flat No. 395, Thomas Light, Wi
+10009Mark Kelly          Female070519873191152802markkelly781@gmail.com        Street No. 430, Rebecca Pike, 
+10010David Conway        Female061019907158599261davidconway@gmail.com         Door No. 33, Maldonado Fort, L
+10011Nathan Chase        Female090319688603185858nathanchase@gmail.com         Flat No. 326, Rodriguez Tunnel
+10012Angel Murillo       Others160619676457090117angelmurillo643@gmail.com     Street No. 523, Sarah Divide, 
+10013Christopher Walls   Others311219791735441857christopherwalls277@gmail.com Flat No. 410, Joel Fall, Kelly
+10014Kevin Brown         Female110319979734659118kevinbrown@gmail.com          Street No. 757, King Flats, Po
+10015Leslie Horn         Male  060119878793193630lesliehorn957@gmail.com       Street No. 239, Hall Prairie, 
+10016Lisa Rodriguez MD   Male  190419621476350576lisarodriguezmd@gmail.com     Street No. 369, Hale Fords, De
+10017Christopher Cross   Female180219808026617149christophercross70@gmail.com  Street No. 845, Bentley Stream
+10018Jeffrey Stein       Female280620035971110945jeffreystein786@gmail.com     Door No. 713, Mary Mountains, 
+10019Ryan Mcdonald       Others111119621814480649ryanmcdonald569@gmail.com     Street No. 828, Jordan Islands
+10020Gregory Sanchez     Male  160319715730939040gregorysanchez@gmail.com      Door No. 527, Bryant Cliffs, W
+10021Sarah Jackson       Female240919849554633418sarahjackson159@gmail.com     Door No. 13, Martin Spring, Me
+10022Barbara Dixon       Others010219833013731690barbaradixon@gmail.com        Door No. 836, Bryan Bridge, So
+10023Fernando Griffith   Female100619784438234179fernandogriffith@gmail.com    Door No. 260, Green Vista, Sou
+10024Renee Baker         Others220719650150112598reneebaker692@gmail.com       Door No. 299, Jeffrey Islands,
+10025Devon Green         Male  190519670012891758devongreen@gmail.com          Street No. 240, Christopher St
+10026Marc Williams       Female121219821866539657marcwilliams@gmail.com        Street No. 819, Levine Lane, E
+10027Lori Wallace        Others180319998970669996loriwallace40@gmail.com       Street No. 90, Webster Loop, W
+10028Bryan Graham        Female300519661743376425bryangraham@gmail.com         Door No. 997, Craig Course, Ch
+10029Michael Edwards     Female020619807251155320michaeledwards71@gmail.com    Flat No. 104, Hardin Summit, J
+10030Shawn Coleman       Female101119757445532474shawncoleman@gmail.com        Door No. 179, Monica Locks, No
+10031Dustin Collins      Female190919661736767735dustincollins759@gmail.com    Door No. 444, Mendoza Flats, P
+10032Patricia Stanley MD Female200419997418162549patriciastanleymd@gmail.com   Door No. 937, Mckee Lodge, Wes
+10033Anne Ortiz          Female180719982038799243anneortiz@gmail.com           Door No. 953, Maria Shores, Ru
+10034Alexandra Flowers   Others220619723607351351alexandraflowers@gmail.com    Door No. 285, Solomon Wells, C
+10035Claire Bruce        Female040319647956475006clairebruce805@gmail.com      Street No. 162, Tina Street, M
+10036Mark Morton         Others271019887802523299markmorton@gmail.com          Flat No. 850, Heather Valleys,
+10037Joseph Clark        Others130119930270058550josephclark@gmail.com         Door No. 989, Mark Forges, Gre
+10038Patrick Diaz        Female270420013181821833patrickdiaz257@gmail.com      Door No. 660, Melinda Village,
+10039Gregory Burch       Male  170419891606777976gregoryburch@gmail.com        Flat No. 714, Sue Oval, East K
+10040Jamie Payne         Others301019762049261502jamiepayne@gmail.com          Door No. 755, Michelle Ville, 
+10041Angela Powell       Male  180519799224332183angelapowell138@gmail.com     Flat No. 549, Martin Walk, Rit
+10042Daniel Long         Female041219746872569647daniellong927@gmail.com       Flat No. 997, Adams Burg, Mich
+10043Denise Mitchell     Female260520035336181407denisemitchell@gmail.com      Street No. 298, Anthony Keys, 
+10044Victoria Sanchez    Male  030519683212062115victoriasanchez@gmail.com     Flat No. 51, Aguirre Park, Por
+10045Paul Jackson        Others141219947582896274pauljackson808@gmail.com      Door No. 592, Deleon Lodge, Me
+10046Marc Palmer         Female190519706061374696marcpalmer@gmail.com          Street No. 20, Mccann Cliffs, 
+10047Bradley Franklin    Others210819752493935904bradleyfranklin316@gmail.com  Street No. 410, Hernandez Cove
+10048Patrick Walker      Female160219866735204766patrickwalker@gmail.com       Door No. 382, Cole Route, East
+10049Kimberly Dougherty  Male  200319626528409651kimberlydougherty@gmail.com   Flat No. 465, Darlene Park, Wi
+TRL|CustomerDetails|50|End

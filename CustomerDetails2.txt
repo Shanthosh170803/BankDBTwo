@@ -1,0 +1,7 @@
+HDR|CustomerDetails2|20250516|Start
+10050Sample Name0        Others180819667215908704samplename0@example.com            Flat No. 100, Sample Street, City
+10051Sample Name1        Female031019817344797753samplename1@example.com            Flat No. 101, Sample Street, City
+10052Sample Name2        Male  100320036186090119samplename2@example.com            Flat No. 102, Sample Street, City
+10053Sample Name3        Male  230319686759273060samplename3@example.com            Flat No. 103, Sample Street, City
+10054Sample Name4        Female190119669109814145samplename4@example.com            Flat No. 104, Sample Street, City
+TRL|CustomerDetails2|5|End

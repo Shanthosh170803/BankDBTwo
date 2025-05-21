@@ -1,0 +1,7 @@
+HDR|AccountDetails2|20250516|Start
+10050Sample Name         28683134396Current   000366735.96
+10051Sample Name         48111074024Savings   000696885.70
+10052Sample Name         91280386991Savings   000902220.62
+10053Sample Name         86065551593Current   000207423.18
+10054Sample Name         36339024755Current   000390145.03
+TRL|AccountDetails2|5|End
