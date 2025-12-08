@@ -4,4 +4,47 @@ HDR|TransactionDetails2|20250516|Start
 10052Sample Name2        20583562675701551RTGS                          000029630.14 15052025 05:32:13
 10053Sample Name3        16196174461901794digital cards                 000044629.21 15052025 05:32:13
 10054Sample Name4        23499463987682586ATM Transactions              000072555.96 15052025 05:32:13
+
 TRL|TransactionDetails2|5|End
+
+HTTP Status 500 – Internal Server Error
+Type Exception Report
+
+Message An exception occurred processing [/admin/addQuestion.jsp] at line [2]
+
+Description The server encountered an unexpected condition that prevented it from fulfilling the request.
+
+Exception
+
+org.apache.jasper.JasperException: An exception occurred processing [/admin/addQuestion.jsp] at line [2]
+
+1: <%
+2:     int quizId = Integer.parseInt(request.getParameter("quizId"));
+3: %>
+4:  
+5: <!DOCTYPE html>
+
+
+Stacktrace:
+	org.apache.jasper.servlet.JspServletWrapper.handleJspException(JspServletWrapper.java:610)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:499)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Root Cause
+
+java.lang.NumberFormatException: Cannot parse null string
+	java.base/java.lang.Integer.parseInt(Integer.java:630)
+	java.base/java.lang.Integer.parseInt(Integer.java:786)
+	org.apache.jsp.admin.addQuestion_jsp._jspService(addQuestion_jsp.java:117)
+	org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:70)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Note The full stack trace of the root cause is available in the server logs.
+
+Apache Tomcat/9.0.89
