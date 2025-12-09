@@ -7,44 +7,110 @@ HDR|TransactionDetails2|20250516|Start
 
 TRL|TransactionDetails2|5|End
 
-HTTP Status 500 – Internal Server Error
-Type Exception Report
+    public boolean addQuiz(Quiz quiz) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "INSERT INTO quiz(name, description) VALUES (?, ?)";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, quiz.getName());
+            pst.setString(2, quiz.getDescription());
+ 
+            return pst.executeUpdate() > 0;
+ 
+        } catch (Exception e) {
+            System.out.println("Add Quiz Error: " + e.getMessage());
+        }
+        return false;
+    }
 
-Message An exception occurred processing [/admin/addQuestion.jsp] at line [2]
-
-Description The server encountered an unexpected condition that prevented it from fulfilling the request.
-
-Exception
-
-org.apache.jasper.JasperException: An exception occurred processing [/admin/addQuestion.jsp] at line [2]
-
-1: <%
-2:     int quizId = Integer.parseInt(request.getParameter("quizId"));
-3: %>
-4:  
-5: <!DOCTYPE html>
 
 
-Stacktrace:
-	org.apache.jasper.servlet.JspServletWrapper.handleJspException(JspServletWrapper.java:610)
-	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:499)
-	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
-	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-Root Cause
+package quizportal.servlet.admin;
 
-java.lang.NumberFormatException: Cannot parse null string
-	java.base/java.lang.Integer.parseInt(Integer.java:630)
-	java.base/java.lang.Integer.parseInt(Integer.java:786)
-	org.apache.jsp.admin.addQuestion_jsp._jspService(addQuestion_jsp.java:117)
-	org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:70)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
-	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
-	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-Note The full stack trace of the root cause is available in the server logs.
+import quizportal.dao.QuizDAO;
+import quizportal.model.Quiz;
+import quizportal.util.DBConnection;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+import java.sql.Connection;
+ 
+@WebServlet("/addQuiz")
+public class AddQuizServlet extends HttpServlet {
+ 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+ 
+        String quizName = request.getParameter("quizName");
+        String description = request.getParameter("description");
+ 
+        try {
+            Connection conn = DBConnection.getConnection();
+            QuizDAO quizDAO = new QuizDAO();
+ 
+            Quiz quiz = new Quiz();
+            quiz.setName(quizName);
+            quiz.setDescription(description);
+ 
+            boolean inserted = quizDAO.addQuiz(quiz);
+ 
+            if (inserted) {
+               response.sendRedirect("admin/quizzes.jsp?success=1");
+            } else {
+               response.sendRedirect("admin/addQuiz.jsp?error=1");
+            }
+ 
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("admin/addQuiz.jsp?error=1");
+        }
+    }
+}
 
-Apache Tomcat/9.0.89
+
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Quizzes</title>
+</head>
+<body>
+    <h2>All Quizzes</h2>
+    <a href="addQuiz.jsp">Add New Quiz</a><br><br>
+ 
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+        <%
+            if (quizzes != null) {
+                for (Quiz q : quizzes) {
+        %>
+        <tr>
+            <td><%= q.getId() %></td>
+            <td><%= q.getName() %></td>
+            <td><%= q.getDescription() %></td>
+            <td>
+                <a href="editQuiz.jsp?id=<%=q.getId()%>">Edit</a> |
+                <a href="deleteQuiz?id=<%=q.getId()%>"onclick="return confirm('Delete this quiz?')">Delete</a>
+            </td>
+        </tr>
+        <%
+                }
+            }
+        %>
+    </table>
+</body>
+</html>
