@@ -1,4 +1,63 @@
-            <td>
-                <a href="editQuiz.jsp?id=<%=q.getId()%>">Edit</a> |
-                <a href="deleteQuiz?id=<%=q.getId()%>" onclick="return confirm('Delete this quiz?');">Delete</a>
-            </td>
+===addQuiz.jsp===
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Quiz</title>
+</head>
+<body>
+    <h2>Add New Quiz</h2>
+ 
+    <form action="../addQuiz" method="post">
+        <label>Quiz Name:</label><br>
+        <input type="text" name="quizName" required><br><br>
+ 
+        <label>Description:</label><br>
+        <textarea name="description" required></textarea><br><br>
+ 
+        <button type="submit">Add Quiz</button>
+    </form>
+ 
+    <% if (request.getParameter("success") != null) { %>
+        <p style="color:green;">Quiz added successfully!</p>
+    <% } %>
+ 
+    <% if (request.getParameter("error") != null) { %>
+        <p style="color:red;">Failed to add quiz. Try again.</p>
+    <% } %>
+ 
+</body>
+</html>
+===editQuiz.jsp===
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    Quiz quiz = (Quiz) request.getAttribute("quiz");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Quiz</title>
+</head>
+<body>
+    <h2>Edit Quiz</h2>
+ 
+    <form action="../editQuiz" method="post">
+        <input type="hidden" name="id" value="<%=quiz.getId()%>">
+ 
+        <label>Quiz Name:</label><br>
+        <input type="text" name="quizName" value="<%=quiz.getName()%>" required><br><br>
+ 
+        <label>Description:</label><br>
+        <textarea name="description" required><%=quiz.getDescription()%></textarea><br><br>
+ 
+        <button type="submit">Update Quiz</button>
+    </form>
+ 
+    <% if (request.getParameter("error") != null) { %>
+        <p style="color:red;">Failed to update quiz. Try again.</p>
+    <% } %>
+ 
+    <br>
+    <a href="listQuizzes">Back to Quiz List</a>
+</body>
+</html>
