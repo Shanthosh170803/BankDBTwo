@@ -1,3 +1,48 @@
+HTTP Status 500 – Internal Server Error
+Type Exception Report
+
+Message An exception occurred processing [/admin/listQuestions.jsp] at line [6]
+
+Description The server encountered an unexpected condition that prevented it from fulfilling the request.
+
+Exception
+
+org.apache.jasper.JasperException: An exception occurred processing [/admin/listQuestions.jsp] at line [6]
+
+3:  
+4: <%
+5:     List<Question> questions = (List<Question>) request.getAttribute("questions");
+6:     int quizId = (int) request.getAttribute("quizId");
+7: %>
+8:  
+9: <!DOCTYPE html>
+
+
+Stacktrace:
+	org.apache.jasper.servlet.JspServletWrapper.handleJspException(JspServletWrapper.java:610)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:499)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Root Cause
+
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "javax.servlet.http.HttpServletRequest.getAttribute(String)" is null
+	org.apache.jsp.admin.listQuestions_jsp._jspService(listQuestions_jsp.java:125)
+	org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:70)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Note The full stack trace of the root cause is available in the server logs.
+
+Apache Tomcat/9.0.89
+
+
+
+
 <%@ page import="java.util.List" %>
 <%@ page import="quizportal.model.Question" %>
  
@@ -14,7 +59,7 @@
 <body>
     <h2>Questions for Quiz ID: <%=quizId%></h2>
  
-    <a href="addQuestion.jsp?quizId=<%=quizId%>">Add New Question</a><br><br>
+    <a href="../admin/addQuestion.jsp?quizId=<%=quizId%>">Add New Question</a><br><br>
  
     <table border="1" cellpadding="10">
         <tr>
@@ -42,7 +87,7 @@
             <td><%=q.getCorrectOption()%></td>
             <td>
                 <a href="editQuestion.jsp?id=<%=q.getId()%>&quizId=<%=quizId%>">Edit</a> |
-                <a href="deleteQuestion?id=<%=q.getId()%>&quizId=<%=quizId%>" onclick="return confirm('Delete this question?);">Delete</a>
+                <a href="deleteQuestion?id=<%=q.getId()%>&quizId=<%=quizId%>" onclick="return confirm('Delete this question?');">Delete</a>
             </td>
         </tr>
         <%
