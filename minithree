@@ -1,102 +1,99 @@
-HTTP Status 500 – Internal Server Error
-Type Exception Report
+===ListQuestionServlet.java===
 
-Message An exception occurred processing [/admin/listQuestions.jsp] at line [6]
-
-Description The server encountered an unexpected condition that prevented it from fulfilling the request.
-
-Exception
-
-org.apache.jasper.JasperException: An exception occurred processing [/admin/listQuestions.jsp] at line [6]
-
-3:  
-4: <%
-5:     List<Question> questions = (List<Question>) request.getAttribute("questions");
-6:     int quizId = (int) request.getAttribute("quizId");
-7: %>
-8:  
-9: <!DOCTYPE html>
-
-
-Stacktrace:
-	org.apache.jasper.servlet.JspServletWrapper.handleJspException(JspServletWrapper.java:610)
-	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:499)
-	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
-	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-Root Cause
-
-java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "javax.servlet.http.HttpServletRequest.getAttribute(String)" is null
-	org.apache.jsp.admin.listQuestions_jsp._jspService(listQuestions_jsp.java:125)
-	org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:70)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
-	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:379)
-	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:327)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-Note The full stack trace of the root cause is available in the server logs.
-
-Apache Tomcat/9.0.89
-
-
-
-
-<%@ page import="java.util.List" %>
-<%@ page import="quizportal.model.Question" %>
+package quizportal.servlet.admin;
  
-<%
-    List<Question> questions = (List<Question>) request.getAttribute("questions");
-    int quizId = (int) request.getAttribute("quizId");
-%>
+import quizportal.dao.QuestionDAO;
+import quizportal.model.Question;
  
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Questions List</title>
-</head>
-<body>
-    <h2>Questions for Quiz ID: <%=quizId%></h2>
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+import java.util.List;
  
-    <a href="../admin/addQuestion.jsp?quizId=<%=quizId%>">Add New Question</a><br><br>
+@WebServlet("/listQuestions")
+public class ListQuestionServlet extends HttpServlet {
  
-    <table border="1" cellpadding="10">
-        <tr>
-            <th>ID</th>
-            <th>Question</th>
-            <th>Option A</th>
-            <th>Option B</th>
-            <th>Option C</th>
-            <th>Option D</th>
-            <th>Correct</th>
-            <th>Actions</th>
-        </tr>
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
  
-        <%
-            if (questions != null) {
-                for (Question q : questions) {
-        %>
-        <tr>
-            <td><%=q.getId()%></td>
-            <td><%=q.getQuestionText()%></td>
-            <td><%=q.getOptionA()%></td>
-            <td><%=q.getOptionB()%></td>
-            <td><%=q.getOptionC()%></td>
-            <td><%=q.getOptionD()%></td>
-            <td><%=q.getCorrectOption()%></td>
-            <td>
-                <a href="editQuestion.jsp?id=<%=q.getId()%>&quizId=<%=quizId%>">Edit</a> |
-                <a href="deleteQuestion?id=<%=q.getId()%>&quizId=<%=quizId%>" onclick="return confirm('Delete this question?');">Delete</a>
-            </td>
-        </tr>
-        <%
-                }
+        String quizIdStr = request.getParameter("quizId");
+        if (quizIdStr == null) {
+            response.getWriter().println("Quiz ID missing! Go back to quiz list.");
+            return;
+        }
+ 
+        int quizId = Integer.parseInt(quizIdStr);
+ 
+        try {
+            QuestionDAO questionDAO = new QuestionDAO();
+            List<Question> questions = questionDAO.getQuestionsByQuizId(quizId);
+ 
+            request.setAttribute("questions", questions);
+            request.setAttribute("quizId", quizId);
+            request.getRequestDispatcher("/admin/listQuestion.jsp").forward(request, response);
+ 
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().println("Error fetching questions: " + e.getMessage());
+        }
+    }
+}
+
+===web.xml===
+there is no web.xml , you said Annotations is enough .
+
+===AddQuestionServlet.java===
+package quizportal.servlet.admin;
+ 
+import quizportal.dao.QuestionDAO;
+import quizportal.model.Question;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+ 
+@WebServlet("/addQuestion")
+public class AddQuestionServlet extends HttpServlet {
+ 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+ 
+        int quizId = Integer.parseInt(request.getParameter("quizId"));
+        String questionText = request.getParameter("questionText");
+        String optionA = request.getParameter("optionA");
+        String optionB = request.getParameter("optionB");
+        String optionC = request.getParameter("optionC");
+        String optionD = request.getParameter("optionD");
+        String correctOption = request.getParameter("correctOption");
+ 
+        try {
+            QuestionDAO questionDAO = new QuestionDAO();
+ 
+            Question q = new Question();
+            q.setQuizId(quizId);
+            q.setQuestionText(questionText);
+            q.setOptionA(optionA);
+            q.setOptionB(optionB);
+            q.setOptionC(optionC);
+            q.setOptionD(optionD);
+            q.setCorrectOption(correctOption);
+ 
+            boolean inserted = questionDAO.addQuestion(q);
+ 
+            if (inserted) {
+                response.sendRedirect("admin/listQuestions.jsp?quizId=" + quizId + "&success=1");
+            } else {
+                response.sendRedirect("admin/addQuestion.jsp?quizId=" + quizId + "&error=1");
             }
-        %>
-    </table>
  
-    <br>
-    <a href="listQuizzes">Back to Quiz List</a>
-</body>
-</html>
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("admin/addQuestion.jsp?quizId=" + quizId + "&error=1");
+        }
+    }
+}
+===screenshot is uploded===
