@@ -1,63 +1,314 @@
-===addQuiz.jsp===
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Quiz</title>
-</head>
-<body>
-    <h2>Add New Quiz</h2>
- 
-    <form action="../addQuiz" method="post">
-        <label>Quiz Name:</label><br>
-        <input type="text" name="quizName" required><br><br>
- 
-        <label>Description:</label><br>
-        <textarea name="description" required></textarea><br><br>
- 
-        <button type="submit">Add Quiz</button>
-    </form>
- 
-    <% if (request.getParameter("success") != null) { %>
-        <p style="color:green;">Quiz added successfully!</p>
-    <% } %>
- 
-    <% if (request.getParameter("error") != null) { %>
-        <p style="color:red;">Failed to add quiz. Try again.</p>
-    <% } %>
- 
-</body>
-</html>
-===editQuiz.jsp===
+===quizzes.jsp===
+<%@ page import="java.util.List" %>
 <%@ page import="quizportal.model.Quiz" %>
 <%
-    Quiz quiz = (Quiz) request.getAttribute("quiz");
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
 %>
  
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit Quiz</title>
+    <title>All Quizzes</title>
 </head>
 <body>
-    <h2>Edit Quiz</h2>
+    <h2>All Quizzes</h2>
+    <a href="../admin/addQuiz.jsp">Add New Quiz</a><br><br>
  
-    <form action="../editQuiz" method="post">
-        <input type="hidden" name="id" value="<%=quiz.getId()%>">
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+        <%
+            if (quizzes != null) {
+                for (Quiz q : quizzes) {
+        %>
+        <tr>
+            <td><%= q.getId() %></td>
+            <td><%= q.getName() %></td>
+            <td><%= q.getDescription() %></td>
+            <td>
+                <a href="editQuiz?id=<%=q.getId()%>">Edit</a> |
+                <a href="deleteQuiz?id=<%=q.getId()%>" onclick="return confirm('Delete this quiz?');">Delete</a>
+            </td>
+        </tr>
+        <%
+                }
+            }
+        %>
+    </table>
+</body>
+</html>
+
+===Quiz.java===
+package quizportal.model;
  
-        <label>Quiz Name:</label><br>
-        <input type="text" name="quizName" value="<%=quiz.getName()%>" required><br><br>
+public class Quiz {
+    private int id;
+    private String name;
+    private String description;
  
-        <label>Description:</label><br>
-        <textarea name="description" required><%=quiz.getDescription()%></textarea><br><br>
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
  
-        <button type="submit">Update Quiz</button>
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+ 
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
+
+===addQuestion.jsp===
+<%
+	String quizIdStr=request.getParameter("quizId");
+	if(quizIdStr==null){
+		out.println("Quiz Id Missing! Go back to quiz list");
+		return;
+	}
+    int quizId = Integer.parseInt(request.getParameter("quizId"));
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Question</title>
+</head>
+<body>
+    <h2>Add Question</h2>
+ 
+    <form action="../addQuestion" method="post">
+        <input type="hidden" name="quizId" value="<%=quizId%>">
+ 
+        <label>Question Text:</label><br>
+        <textarea name="questionText" required></textarea><br><br>
+ 
+        <label>Option A:</label><br>
+        <input type="text" name="optionA" required><br><br>
+ 
+        <label>Option B:</label><br>
+        <input type="text" name="optionB" required><br><br>
+ 
+        <label>Option C:</label><br>
+        <input type="text" name="optionC" required><br><br>
+ 
+        <label>Option D:</label><br>
+        <input type="text" name="optionD" required><br><br>
+ 
+        <label>Correct Option (A/B/C/D):</label><br>
+        <input type="text" name="correctOption" maxlength="1" required><br><br>
+ 
+        <button type="submit">Add Question</button>
     </form>
  
     <% if (request.getParameter("error") != null) { %>
-        <p style="color:red;">Failed to update quiz. Try again.</p>
+        <p style="color:red;">Failed to add question. Try again.</p>
     <% } %>
  
     <br>
-    <a href="listQuizzes">Back to Quiz List</a>
+    <a href="listQuestion?quizId=<%=quizId%>">Back to Question List</a>
 </body>
 </html>
+
+===QuestionDAO.java===
+package quizportal.dao;
+ 
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+ 
+import quizportal.model.Question;
+import quizportal.util.DBConnection;
+ 
+public class QuestionDAO {
+ 
+    public boolean addQuestion(Question q) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "INSERT INTO questions(quiz_id, question_text, option_a, option_b, option_c, option_d, correct_option) "
+                       + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, q.getQuizId());
+            pst.setString(2, q.getQuestionText());
+            pst.setString(3, q.getOptionA());
+            pst.setString(4, q.getOptionB());
+            pst.setString(5, q.getOptionC());
+            pst.setString(6, q.getOptionD());
+            pst.setString(7, q.getCorrectOption());
+ 
+            return pst.executeUpdate() > 0;
+ 
+        } catch (Exception e) {
+            System.out.println("Add Question Error: " + e.getMessage());
+        }
+        return false;
+    }
+ 
+    public List<Question> getQuestionsByQuizId(int quizId) {
+        List<Question> list = new ArrayList<>();
+ 
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM questions WHERE quiz_id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, quizId);
+ 
+            ResultSet rs = pst.executeQuery();
+ 
+            while (rs.next()) {
+                Question q = new Question();
+                q.setId(rs.getInt("id"));
+                q.setQuizId(rs.getInt("quiz_id"));
+                q.setQuestionText(rs.getString("question_text"));
+                q.setOptionA(rs.getString("option_a"));
+                q.setOptionB(rs.getString("option_b"));
+                q.setOptionC(rs.getString("option_c"));
+                q.setOptionD(rs.getString("option_d"));
+                q.setCorrectOption(rs.getString("correct_option"));
+                list.add(q);
+            }
+ 
+        } catch (Exception e) {
+            System.out.println("Get Questions Error: " + e.getMessage());
+        }
+ 
+        return list;
+    }
+ 
+    public Question getQuestionById(int id) {
+        Question q = null;
+ 
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM questions WHERE id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, id);
+ 
+            ResultSet rs = pst.executeQuery();
+ 
+            if (rs.next()) {
+                q = new Question();
+                q.setId(rs.getInt("id"));
+                q.setQuizId(rs.getInt("quiz_id"));
+                q.setQuestionText(rs.getString("question_text"));
+                q.setOptionA(rs.getString("option_a"));
+                q.setOptionB(rs.getString("option_b"));
+                q.setOptionC(rs.getString("option_c"));
+                q.setOptionD(rs.getString("option_d"));
+                q.setCorrectOption(rs.getString("correct_option"));
+            }
+ 
+        } catch (Exception e) {
+            System.out.println("Get Question Error: " + e.getMessage());
+        }
+ 
+        return q;
+    }
+ 
+    public boolean updateQuestion(Question q) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "UPDATE questions SET question_text=?, option_a=?, option_b=?, option_c=?, option_d=?, correct_option=? WHERE id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, q.getQuestionText());
+            pst.setString(2, q.getOptionA());
+            pst.setString(3, q.getOptionB());
+            pst.setString(4, q.getOptionC());
+            pst.setString(5, q.getOptionD());
+            pst.setString(6, q.getCorrectOption());
+            pst.setInt(7, q.getId());
+ 
+            return pst.executeUpdate() > 0;
+ 
+        } catch (Exception e) {
+            System.out.println("Update Question Error: " + e.getMessage());
+        }
+        return false;
+    }
+ 
+    public boolean deleteQuestion(int id) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "DELETE FROM questions WHERE id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, id);
+ 
+            return pst.executeUpdate() > 0;
+ 
+        } catch (Exception e) {
+            System.out.println("Delete Question Error: " + e.getMessage());
+        }
+        return false;
+    }
+}
+
+===AddQuestionServlet.java===
+package quizportal.servlet.admin;
+ 
+import quizportal.dao.QuestionDAO;
+import quizportal.model.Question;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+ 
+@WebServlet("/addQuestion")
+public class AddQuestionServlet extends HttpServlet {
+ 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+ 
+        int quizId = Integer.parseInt(request.getParameter("quizId"));
+        String questionText = request.getParameter("questionText");
+        String optionA = request.getParameter("optionA");
+        String optionB = request.getParameter("optionB");
+        String optionC = request.getParameter("optionC");
+        String optionD = request.getParameter("optionD");
+        String correctOption = request.getParameter("correctOption");
+ 
+        try {
+            QuestionDAO questionDAO = new QuestionDAO();
+ 
+            Question q = new Question();
+            q.setQuizId(quizId);
+            q.setQuestionText(questionText);
+            q.setOptionA(optionA);
+            q.setOptionB(optionB);
+            q.setOptionC(optionC);
+            q.setOptionD(optionD);
+            q.setCorrectOption(correctOption);
+ 
+            boolean inserted = questionDAO.addQuestion(q);
+ 
+            if (inserted) {
+                response.sendRedirect("listQuestions?quizId=" + quizId + "&success=1");
+            } else {
+                response.sendRedirect("admin/addQuestion.jsp?quizId=" + quizId + "&error=1");
+            }
+ 
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("admin/addQuestion.jsp?quizId=" + quizId + "&error=1");
+        }
+    }
+}
