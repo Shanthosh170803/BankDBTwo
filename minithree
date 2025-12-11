@@ -1,3 +1,49 @@
+===quizzes.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Quizzes</title>
+</head>
+<body>
+    <h2>All Quizzes</h2>
+    <a href="addQuiz.jsp">Add New Quiz</a><br><br>
+ 
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+        <%
+            if (quizzes != null) {
+                for (Quiz q : quizzes) {
+        %>
+        <tr>
+            <td><%= q.getId() %></td>
+            <td><%= q.getName() %></td>
+            <td><%= q.getDescription() %></td>
+            <td>
+                <a href="editQuiz?id=<%=q.getId()%>">Edit</a> |
+                <a href="admin/addQuestion.jsp?quizId=<%=q.getId()%>">Add Question</a> |
+                <a href="deleteQuiz?id=<%=q.getId()%>" onclick="return confirm('Delete this quiz?');">Delete</a>
+                
+            </td>
+        </tr>
+        <%
+                }
+            }
+        %>
+    </table>
+</body>
+</html>
+
 ===addQuiz.jsp===
 <!DOCTYPE html>
 <html>
@@ -7,7 +53,7 @@
 <body>
     <h2>Add New Quiz</h2>
  
-    <form action="addQuiz" method="post">
+    <form action="../addQuiz" method="post">
         <label>Quiz Name:</label><br>
         <input type="text" name="quizName" required><br><br>
  
@@ -37,12 +83,11 @@ import quizportal.model.Quiz;
 
 import java.io.IOException;
 
-
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
  
 @WebServlet("/addQuiz")
 public class AddQuizServlet extends HttpServlet {
@@ -76,14 +121,25 @@ public class AddQuizServlet extends HttpServlet {
     }
 }
 
-===error===
-http://localhost:9090/OnlineQuizPortal/admin/addQuiz
+===issue i am facing===
+1) if i run addQuiz.jsp , it show add quiz page and after giving the quiz details i click the add quiz and it redirect to quizzes.jsp which list the quiz from database. from the quizzes.jsp (list quiz) page i click add new quiz and shows 404 error
+http://localhost:9090/OnlineQuizPortal/addQuiz.jsp
 HTTP Status 404 – Not Found
 Type Status Report
 
-Message The requested resource [/OnlineQuizPortal/admin/addQuiz] is not available
+Message JSP file [/addQuiz.jsp] not found
 
 Description The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.
 
 Apache Tomcat/9.0.100
- 
+
+2)if i run quizzes.jsp, it just show the columns names without the quiz details stored in the database, then i click the add new quiz and its redirect to addQuiz page, after giving the quiz details i click add quiz and its redirect to quizzes.jsp(list Quiz) page and not the quizzes.jsp page shows all the quiz details from database. and now from here if i click add new quiz it show the 404 error
+http://localhost:9090/OnlineQuizPortal/addQuiz.jsp
+HTTP Status 404 – Not Found
+Type Status Report
+
+Message JSP file [/addQuiz.jsp] not found
+
+Description The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.
+
+Apache Tomcat/9.0.100
