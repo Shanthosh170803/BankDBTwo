@@ -1,42 +1,25 @@
-I already having the index.jsp file, i will give you the jsp file you decide about creating new index jsp file or not..!
+OnlineQuizPortal is my project name.
+Inside that project i have java packages in the names:
+     1)src/main/java/quizportal.dao
+     2)src/main/java/quizportal.model
+     3)src/main/java/quizportal.servlet.admin
+     4)src/main/java/quizportal.servlet.user
+     5)src/main/java/quizportal.util
+inside quizportal.dao package -->AdminDAO.java,QuestionDAO.java,QuizDAO.java,UserAttemptDAO.java,UserDAO.java
+inside quizportal.model package -->Admin.java,Question.java,Quiz.java,User.java,UserAttempt.java
+inside quizportal.servlet.admin -->AddQuestionServlet.java,AddQuizServlet.java,AdminLoginServlet.java,DeleteQuestionServlet.java,DeleteQuizServlet.java,EditQuestionServlet.java,EditQuizServlet.java,ListQuestionServlet.java,ListQuizzesServlet.java
+inside quizportal.servlet.user -->RegisterUserServlet.java,UserLoginServlet.java
+inside quizportal.util -->DBConnection.java
 
-===index.jsp===
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Online Quiz Portal - Login</title>
-</head>
-<body>
- 
-<h1>Online Quiz Portal</h1>
- 
-<h2>Admin Login</h2>
-<form action="adminLogin" method="post">
-    <label>Admin Username:</label>
-    <input type="text" name="username" required><br>
- 
-    <label>Password:</label>
-    <input type="password" name="password" required><br>
- 
-    <button type="submit">Login as Admin</button>
-</form>
- 
-<hr>
- 
-<h2>User Login</h2>
-<form action="userLogin" method="post">
-    <label>Email:</label>
-    <input type="email" name="email" required><br>
- 
-    <label>Password:</label>
-    <input type="password" name="password" required><br>
- 
-    <button type="submit">Login as User</button>
-</form>
- 
-<br>
- 
-<a href="user/register.jsp">New User? Register Here</a>
- 
-</body>
-</html>
+src/main/webapp :
+    inside webapp i have:
+     1)admin 
+     2)css
+     3)user
+     4)footer.jsp
+     5)header.jsp
+     6)index.jsp
+inside admin folder --> addQuestion.jsp,addQuiz.jsp, editQuestion.jsp,editQuiz.jsp,listQuestions.jsp,quizzes.jsp
+inside user folder --> dashboard.jsp,register.jsp
+
+do you need further clarification?
