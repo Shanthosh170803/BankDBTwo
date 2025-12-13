@@ -1,40 +1,123 @@
-You generate the leaderboard to display in user dashboard
-but i want leaderboard to display in quizzes.jsp page
-===quizzes.jsp===
-<%@ page import="java.util.List" %>
-<%@ page import="quizportal.model.Quiz" %>
-<%
-    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
-%>
-<!DOCTYPE html>
-<html>
-<head><title>Available Quizzes</title></head>
-<body>
-<h2>Available Quizzes</h2>
-<table border="1">
-<tr><th>ID</th><th>Name</th><th>Description</th><th>Action</th></tr>
-<%
-if(quizzes!=null){
-   for(Quiz q:quizzes){
-%>
-<tr>
-<td><%=q.getId()%></td>
-<td><%=q.getName()%></td>
-<td><%=q.getDescription()%></td>
-<td><a href="<%=request.getContextPath()%>/startQuiz?quizId=<%=q.getId()%>">Start</a></td>
-</tr>
-<%
-   }
+===UserAttemptDAO.java===
+package quizportal.dao;
+ 
+import java.sql.*;
+import java.util.*;
+import quizportal.model.LeaderboardEntry;
+import quizportal.util.DBConnection;
+ 
+public class UserAttemptDAO {
+ 
+	public List<LeaderboardEntry> getLeaderboardByQuiz(int quizId) {
+	    List<LeaderboardEntry> list = new ArrayList<>();
+	 
+	    String sql =
+	        "SELECT u.id, u.name, u.email, MAX(ua.score) AS score " +
+	        "FROM user_attempts ua " +
+	        "JOIN users u ON ua.user_id = u.id " +
+	        "WHERE ua.quiz_id = ? " +
+	        "GROUP BY u.id, u.name, u.email " +
+	        "ORDER BY score DESC, u.name ASC";
+	 
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+	 
+	        ps.setInt(1, quizId);
+	        ResultSet rs = ps.executeQuery();
+	 
+	        int rank = 1;
+	        while (rs.next()) {
+	            LeaderboardEntry e = new LeaderboardEntry();
+	            e.setUserId(rs.getInt("id"));
+	            e.setUserName(rs.getString("name"));
+	            e.setEmail(rs.getString("email"));
+	            e.setScore(rs.getInt("score"));
+	            e.setRank(rank++);
+	            list.add(e);
+	        }
+	 
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	 
+	    return list;
+	}
 }
-%>
-</table>
-<br>
-<a href="<%=request.getContextPath()%>/user/dashboard.jsp">Back to Dashboard</a>
-</body>
-</html>
-
-in the above code , inside the action colum i want the leaderboard option along with start quiz option, if user click the leaderboard link it will give the leaderboard will be display based on the quiz id
-based on the quiz id the leaderboard will have the table of records having the user name who attended the quiz and their email id and theie score 
-
-if you need clarification , ask me the questions then start generating the code
-        
+===ResultViewServlet.java===
+package quizportal.servlet.user;
+ 
+import quizportal.dao.UserAttemptDAO;
+import quizportal.model.UserAttempt;
+ 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.List;
+ 
+@WebServlet("/result")
+public class ResultViewServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int quizId = Integer.parseInt(req.getParameter("quizId"));
+        int score = Integer.parseInt(req.getParameter("score"));
+        int total = Integer.parseInt(req.getParameter("total"));
+ 
+        UserAttemptDAO uad = new UserAttemptDAO();
+        List<UserAttempt> top = uad.getLeaderboardForQuiz(quizId);
+ 
+        req.setAttribute("score", score);
+        req.setAttribute("total", total);
+        req.setAttribute("leaderboard", top);
+        req.setAttribute("quizId", quizId);
+        req.getRequestDispatcher("/user/result.jsp").forward(req, resp);
+    }
+}
+===SubmitQuizServlet.java===
+package quizportal.servlet.user;
+ 
+import quizportal.dao.QuestionDAO;
+import quizportal.dao.UserAttemptDAO;
+import quizportal.model.Question;
+import quizportal.model.User;
+import quizportal.model.UserAttempt;
+ 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.List;
+ 
+@WebServlet("/submitQuiz")
+public class SubmitQuizServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            return;
+        }
+        User user = (User) session.getAttribute("user");
+ 
+        int quizId = Integer.parseInt(req.getParameter("quizId"));
+        QuestionDAO qdao = new QuestionDAO();
+        List<Question> questions = qdao.getQuestionsByQuizId(quizId);
+ 
+        int correct = 0;
+        for (Question q : questions) {
+            String ans = req.getParameter("q_" + q.getId());
+            if (ans != null && ans.equalsIgnoreCase(q.getCorrectOption())) correct++;
+        }
+        int total = questions.size();
+ 
+        // Save attempt
+        UserAttempt ua = new UserAttempt();
+        ua.setUserId(user.getId());
+        ua.setQuizId(quizId);
+        ua.setScore(correct);
+        ua.setTotalQuestions(total);
+ 
+        UserAttemptDAO uad = new UserAttemptDAO();
+        uad.saveAttempt(ua);
+ 
+        resp.sendRedirect(req.getContextPath() + "/result?quizId=" + quizId + "&score=" + correct + "&total=" + total);
+    }
+}
