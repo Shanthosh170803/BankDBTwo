@@ -1,123 +1,115 @@
-===UserAttemptDAO.java===
-package quizportal.dao;
- 
-import java.sql.*;
-import java.util.*;
-import quizportal.model.LeaderboardEntry;
-import quizportal.util.DBConnection;
- 
-public class UserAttemptDAO {
- 
-	public List<LeaderboardEntry> getLeaderboardByQuiz(int quizId) {
-	    List<LeaderboardEntry> list = new ArrayList<>();
-	 
-	    String sql =
-	        "SELECT u.id, u.name, u.email, MAX(ua.score) AS score " +
-	        "FROM user_attempts ua " +
-	        "JOIN users u ON ua.user_id = u.id " +
-	        "WHERE ua.quiz_id = ? " +
-	        "GROUP BY u.id, u.name, u.email " +
-	        "ORDER BY score DESC, u.name ASC";
-	 
-	    try (Connection conn = DBConnection.getConnection();
-	         PreparedStatement ps = conn.prepareStatement(sql)) {
-	 
-	        ps.setInt(1, quizId);
-	        ResultSet rs = ps.executeQuery();
-	 
-	        int rank = 1;
-	        while (rs.next()) {
-	            LeaderboardEntry e = new LeaderboardEntry();
-	            e.setUserId(rs.getInt("id"));
-	            e.setUserName(rs.getString("name"));
-	            e.setEmail(rs.getString("email"));
-	            e.setScore(rs.getInt("score"));
-	            e.setRank(rank++);
-	            list.add(e);
-	        }
-	 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	 
-	    return list;
-	}
-}
-===ResultViewServlet.java===
-package quizportal.servlet.user;
- 
-import quizportal.dao.UserAttemptDAO;
-import quizportal.model.UserAttempt;
- 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.List;
- 
-@WebServlet("/result")
-public class ResultViewServlet extends HttpServlet {
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int quizId = Integer.parseInt(req.getParameter("quizId"));
-        int score = Integer.parseInt(req.getParameter("score"));
-        int total = Integer.parseInt(req.getParameter("total"));
- 
-        UserAttemptDAO uad = new UserAttemptDAO();
-        List<UserAttempt> top = uad.getLeaderboardForQuiz(quizId);
- 
-        req.setAttribute("score", score);
-        req.setAttribute("total", total);
-        req.setAttribute("leaderboard", top);
-        req.setAttribute("quizId", quizId);
-        req.getRequestDispatcher("/user/result.jsp").forward(req, resp);
+===dashboard.jsp===
+<%@ page import="quizportal.model.User" %>
+<%
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        return;
     }
-}
-===SubmitQuizServlet.java===
-package quizportal.servlet.user;
+%>
+<!DOCTYPE html>
+<html>
+<head><title>User Dashboard</title></head>
+<body>
+<h2>Welcome, <%= user.getName() %></h2>
  
-import quizportal.dao.QuestionDAO;
-import quizportal.dao.UserAttemptDAO;
-import quizportal.model.Question;
-import quizportal.model.User;
-import quizportal.model.UserAttempt;
+<table>
+<tr>
+    <td><a href="<%=request.getContextPath()%>/user/quizzes">Take Quiz</a></td>
+    <td><a href="<%=request.getContextPath()%>/user/history.jsp">Attempt History</a></td>
+    <td><a href="<%=request.getContextPath()%>/user/logout">Logout</a></td>
+</tr>
+</table>
  
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.List;
- 
-@WebServlet("/submitQuiz")
-public class SubmitQuizServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
-            return;
-        }
-        User user = (User) session.getAttribute("user");
- 
-        int quizId = Integer.parseInt(req.getParameter("quizId"));
-        QuestionDAO qdao = new QuestionDAO();
-        List<Question> questions = qdao.getQuestionsByQuizId(quizId);
- 
-        int correct = 0;
-        for (Question q : questions) {
-            String ans = req.getParameter("q_" + q.getId());
-            if (ans != null && ans.equalsIgnoreCase(q.getCorrectOption())) correct++;
-        }
-        int total = questions.size();
- 
-        // Save attempt
-        UserAttempt ua = new UserAttempt();
-        ua.setUserId(user.getId());
-        ua.setQuizId(quizId);
-        ua.setScore(correct);
-        ua.setTotalQuestions(total);
- 
-        UserAttemptDAO uad = new UserAttemptDAO();
-        uad.saveAttempt(ua);
- 
-        resp.sendRedirect(req.getContextPath() + "/result?quizId=" + quizId + "&score=" + correct + "&total=" + total);
+</body>
+</html>
+
+===history.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.UserAttempt" %>
+<%@ page import="quizportal.model.User" %>
+<%
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        return;
     }
-}
+ 
+    quizportal.dao.UserAttemptDAO dao = new quizportal.dao.UserAttemptDAO();
+    List<UserAttempt> attempts = dao.getAttemptsByUser(user.getId());
+%>
+<!DOCTYPE html>
+<html>
+<head><title>Attempt History</title></head>
+<body>
+<h2>Your Attempts</h2>
+<table border="1">
+<tr><th>Quiz ID</th><th>Score</th><th>Total</th><th>Time</th></tr>
+<% for (UserAttempt a : attempts) { %>
+  <tr>
+    <td><%= a.getQuizId() %></td>
+    <td><%= a.getScore() %></td>
+    <td><%= a.getTotalQuestions() %></td>
+    <td><%= a.getAttemptTime() %></td>
+  </tr>
+<% } %>
+</table>
+ 
+<br><a href="<%=request.getContextPath()%>/user/dashboard.jsp">Back</a>
+</body>
+</html>
+===error===
+http://localhost:9090/OnlineQuizPortal/user/history.jsp
+HTTP Status 500 – Internal Server Error
+Type Exception Report
+
+Message An exception occurred processing [user/history.jsp] at line [12]
+
+Description The server encountered an unexpected condition that prevented it from fulfilling the request.
+
+Exception
+
+org.apache.jasper.JasperException: An exception occurred processing [user/history.jsp] at line [12]
+
+9:     }
+10:  
+11:     quizportal.dao.UserAttemptDAO dao = new quizportal.dao.UserAttemptDAO();
+12:     List<UserAttempt> attempts = dao.getAttemptsByUser(user.getId());
+13: %>
+14: <!DOCTYPE html>
+15: <html>
+
+
+Stacktrace:
+	org.apache.jasper.servlet.JspServletWrapper.handleJspException(JspServletWrapper.java:610)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:489)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Root Cause
+
+javax.servlet.ServletException: java.lang.NoSuchMethodError: 'java.util.List quizportal.dao.UserAttemptDAO.getAttemptsByUser(int)'
+	org.apache.jasper.runtime.PageContextImpl.handlePageException(PageContextImpl.java:654)
+	org.apache.jsp.user.history_jsp._jspService(history_jsp.java:179)
+	org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Root Cause
+
+java.lang.NoSuchMethodError: 'java.util.List quizportal.dao.UserAttemptDAO.getAttemptsByUser(int)'
+	org.apache.jsp.user.history_jsp._jspService(history_jsp.java:133)
+	org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
+	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
+	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+Note The full stack trace of the root cause is available in the server logs.
+
+Apache Tomcat/9.0.100
