@@ -1,185 +1,85 @@
-===ListQuizzesServlet.java===
-package quizportal.servlet.admin;
+the quiz table is showing now but the logout is not working properly
+http://localhost:9090/OnlineQuizPortal/adminLogout
+HTTP Status 404 – Not Found
+Type Status Report
+
+Message The requested resource [/OnlineQuizPortal/adminLogout] is not available
+
+Description The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.
+
+Apache Tomcat/9.0.100
+
+===quizzes.jsp===(inside admin folder)
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
+%>
  
-import quizportal.dao.QuizDAO;
-import quizportal.model.Quiz;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Quizzes</title>
+</head>
+<body>
+    <h2>All Quizzes</h2>
+    <a href="/OnlineQuizPortal/admin/addQuiz.jsp">Add New Quiz</a>
+    <a href="<%=request.getContextPath()%>/adminLogout">Logout</a>
+ 
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+        <%
+            if (quizzes != null) {
+                for (Quiz q : quizzes) {
+        %>
+        <tr>
+            <td><%= q.getId() %></td>
+            <td><%= q.getName() %></td>
+            <td><%= q.getDescription() %></td>
+            <td>
+                <a href="editQuiz?id=<%=q.getId()%>">Edit</a> |
+                <a href="admin/addQuestion.jsp?quizId=<%=q.getId()%>">Add Question</a> |
+                <a href="deleteQuiz?id=<%=q.getId()%>" onclick="return confirm('Delete this quiz?');">Delete</a>
+                
+            </td>
+        </tr>
+        <%
+                }
+            }
+        %>
+    </table>
+</body>
+</html>
+
+===AdminLogoutServlet.java===
+     package quizportal.servlet.admin;
  
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.util.List;
  
-@WebServlet("/listQuizzes")
-public class ListQuizzesServlet extends HttpServlet {
+@WebServlet("/adminLogout")
+public class AdminLogoutServlet extends HttpServlet {
  
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
  
-        try {
-            QuizDAO quizDAO = new QuizDAO();
-            List<Quiz> quizzes = quizDAO.getAllQuizzes();
- 
-            request.setAttribute("quizzes", quizzes);
-            request.getRequestDispatcher("/admin/quizzes.jsp").forward(request, response);
- 
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.getWriter().println("Error fetching quizzes: " + e.getMessage());
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
         }
+ 
+        response.sendRedirect(request.getContextPath() + "/index.jsp");
     }
 }
 
-===QuizDAO.java===
-package quizportal.dao;
- 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
- 
-import quizportal.model.Quiz;
-import quizportal.util.DBConnection;
- 
-public class QuizDAO {
- 
-    public boolean addQuiz(Quiz quiz) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            String sql = "INSERT INTO quiz(name, description) VALUES (?, ?)";
- 
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, quiz.getName());
-            pst.setString(2, quiz.getDescription());
- 
-            return pst.executeUpdate() > 0;
- 
-        } catch (Exception e) {
-            System.out.println("Add Quiz Error: " + e.getMessage());
-        }
-        return false;
-    }
- 
-    public List<Quiz> getAllQuizzes() {
-        List<Quiz> list = new ArrayList<>();
- 
-        try {
-            Connection conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM quiz";
- 
-            PreparedStatement pst = conn.prepareStatement(sql);
-            ResultSet rs = pst.executeQuery();
- 
-            while (rs.next()) {
-                Quiz q = new Quiz();
-                q.setId(rs.getInt("id"));
-                q.setName(rs.getString("name"));
-                q.setDescription(rs.getString("description"));
-                list.add(q);
-            }
- 
-        } catch (Exception e) {
-            System.out.println("Get All Quizzes Error: " + e.getMessage());
-        }
- 
-        return list;
-    }
- 
-    public Quiz getQuizById(int id) {
-        Quiz quiz = null;
- 
-        try {
-            Connection conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM quiz WHERE id=?";
- 
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, id);
- 
-            ResultSet rs = pst.executeQuery();
- 
-            if (rs.next()) {
-                quiz = new Quiz();
-                quiz.setId(rs.getInt("id"));
-                quiz.setName(rs.getString("name"));
-                quiz.setDescription(rs.getString("description"));
-            }
- 
-        } catch (Exception e) {
-            System.out.println("Get Quiz Error: " + e.getMessage());
-        }
- 
-        return quiz;
-    }
- 
-    public boolean updateQuiz(Quiz quiz) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            String sql = "UPDATE quiz SET name=?, description=? WHERE id=?";
- 
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, quiz.getName());
-            pst.setString(2, quiz.getDescription());
-            pst.setInt(3, quiz.getId());
- 
-            return pst.executeUpdate() > 0;
- 
-        } catch (Exception e) {
-            System.out.println("Update Quiz Error: " + e.getMessage());
-        }
-        return false;
-    }
- 
-    public boolean deleteQuiz(int id) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            String sql = "DELETE FROM quiz WHERE id=?";
- 
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, id);
- 
-            return pst.executeUpdate() > 0;
- 
-        } catch (Exception e) {
-            System.out.println("Delete Quiz Error: " + e.getMessage());
-        }
-        return false;
-    }
-}
-===AdminLoginServlet.java===
-package quizportal.servlet.admin;
- 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
- 
-import quizportal.dao.AdminDAO;
-import quizportal.model.Admin;
- 
-import java.io.IOException;
- 
-@WebServlet("/adminLogin")
-public class AdminLoginServlet extends HttpServlet {
- 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
- 
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
- 
-        AdminDAO dao = new AdminDAO();
-        Admin admin = dao.login(username, password);
- 
-        if (admin != null) {
-            HttpSession session = request.getSession();
-            session.setAttribute("admin", admin);
- 
-            response.sendRedirect("admin/quizzes.jsp");  // admin dashboard
-        } else {
-            response.getWriter().println("Invalid admin login");
-        }
-    }
-}
+paths: OnlineQuizPortal/src/main/java/quizportal.servlet.admin/AdminlogoutServlet.java
+       OnlineQuizPortal/src/main/webapp/admin/quizzes.jsp
+       OnlineQuizPortal/src/main/webapp/index.jsp
