@@ -1,123 +1,588 @@
-===UserAttemptDAO===
-package quizportal.dao;
-import java.sql.*;
-import java.util.*;
-import quizportal.model.LeaderboardEntry;
-import quizportal.model.UserAttempt;
-import quizportal.util.DBConnection;
+===index.jsp===
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Quiz Portal - Login</title>
+</head>
+<body>
+ 
+<h1>Online Quiz Portal</h1>
+ 
+<h2>Admin Login</h2>
+<form action="adminLogin" method="post">
+    <label>Admin Username:</label>
+    <input type="text" name="username" required><br>
+ 
+    <label>Password:</label>
+    <input type="password" name="password" required><br>
+ 
+    <button type="submit">Login as Admin</button>
+</form>
+ 
+<hr>
+ 
+<h2>User Login</h2>
+<form action="userLogin" method="post">
+    <label>Email:</label>
+    <input type="email" name="email" required><br>
+ 
+    <label>Password:</label>
+    <input type="password" name="password" required><br>
+ 
+    <button type="submit">Login as User</button>
+</form>
+ 
+<br>
+ 
+<a href="user/register.jsp">New User? Register Here</a>
+ 
+</body>
+</html>
+===header.jsp===
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
 
-public class UserAttemptDAO {
+</body>
+</html>
+===footer.jsp===
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
 
-	public List<LeaderboardEntry> getLeaderboardByQuiz(int quizId) {
-		List<LeaderboardEntry> list = new ArrayList<>();
-
-		String sql = "SELECT u.id, u.name, u.email, MAX(ua.score) AS score " + "FROM user_attempts ua "
-				+ "JOIN users u ON ua.user_id = u.id " + "WHERE ua.quiz_id = ? " + "GROUP BY u.id, u.name, u.email "
-				+ "ORDER BY score DESC, u.name ASC";
-
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-			ps.setInt(1, quizId);
-			ResultSet rs = ps.executeQuery();
-
-			int rank = 1;
-			while (rs.next()) {
-				LeaderboardEntry e = new LeaderboardEntry();
-				e.setUserId(rs.getInt("id"));
-				e.setUserName(rs.getString("name"));
-				e.setEmail(rs.getString("email"));
-				e.setScore(rs.getInt("score"));
-				e.setRank(rank++);
-				list.add(e);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return list;
+</body>
+</html>
+===admin/quizzes.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Quizzes</title>
+</head>
+<body>
+    <h2>All Quizzes</h2>
+    <a href="/OnlineQuizPortal/admin/addQuiz.jsp">Add New Quiz</a>
+    <a href="<%=request.getContextPath()%>/admin/logout">Logout</a>
+ 
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+        <%
+            if (quizzes != null) {
+                for (Quiz q : quizzes) {
+        %>
+        <tr>
+            <td><%= q.getId() %></td>
+            <td><%= q.getName() %></td>
+            <td><%= q.getDescription() %></td>
+            <td>
+                <a href="editQuiz?id=<%=q.getId()%>">Edit</a> |
+                <a href="admin/addQuestion.jsp?quizId=<%=q.getId()%>">Add Question</a> |
+                <a href="deleteQuiz?id=<%=q.getId()%>" onclick="return confirm('Delete this quiz?');">Delete</a>
+                
+            </td>
+        </tr>
+        <%
+                }
+            }
+        %>
+    </table>
+</body>
+</html>
+===admin/addQuiz.jsp===
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Quiz</title>
+</head>
+<body>
+    <h2>Add New Quiz</h2>
+ 
+    <form action="../addQuiz" method="post">
+        <label>Quiz Name:</label><br>
+        <input type="text" name="quizName" required><br><br>
+ 
+        <label>Description:</label><br>
+        <textarea name="description" required></textarea><br><br>
+ 
+        <button type="submit">Add Quiz</button>
+    </form>
+ 
+    <% if (request.getParameter("success") != null) { %>
+        <p style="color:green;">Quiz added successfully!</p>
+    <% } %>
+ 
+    <% if (request.getParameter("error") != null) { %>
+        <p style="color:red;">Failed to add quiz. Try again.</p>
+    <% } %>
+ 
+</body>
+</html>
+===admin/addQuestion.jsp===
+<%
+	String quizIdStr=request.getParameter("quizId");
+	if(quizIdStr==null){
+		out.println("Quiz Id Missing! Go back to quiz list");
+		return;
 	}
-
-	public List<UserAttempt> getAttemptsByUser(int userId) {
-
-		List<UserAttempt> list = new ArrayList<>();
-
-		String sql = "SELECT id, quiz_id, score, total_questions, attempt_time " + "FROM user_attempts "
-				+ "WHERE user_id = ? " + "ORDER BY attempt_time DESC";
-
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-			ps.setInt(1, userId);
-			ResultSet rs = ps.executeQuery();
-
-			while (rs.next()) {
-				UserAttempt ua = new UserAttempt();
-				ua.setId(rs.getInt("id"));
-				ua.setQuizId(rs.getInt("quiz_id"));
-				ua.setScore(rs.getInt("score"));
-				ua.setTotalQuestions(rs.getInt("total_questions"));
-				ua.setAttemptTime(rs.getTimestamp("attempt_time"));
-
-				list.add(ua);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return list;
-	}
-}
-===SubmitQuizServlet===
-package quizportal.servlet.user;
+    int quizId = Integer.parseInt(request.getParameter("quizId"));
+%>
  
-import quizportal.dao.QuestionDAO;
-import quizportal.dao.UserAttemptDAO;
-import quizportal.model.Question;
-import quizportal.model.User;
-import quizportal.model.UserAttempt;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Question</title>
+</head>
+<body>
+    <h2>Add Question</h2>
  
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.List;
+    <form action="../addQuestion" method="post">
+        <input type="hidden" name="quizId" value="<%=quizId%>">
  
-@WebServlet("/submitQuiz")
-public class SubmitQuizServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
-            return;
-        }
-        User user = (User) session.getAttribute("user");
+        <label>Question Text:</label><br>
+        <textarea name="questionText" required></textarea><br><br>
  
-        int quizId = Integer.parseInt(req.getParameter("quizId"));
-        QuestionDAO qdao = new QuestionDAO();
-        List<Question> questions = qdao.getQuestionsByQuizId(quizId);
+        <label>Option A:</label><br>
+        <input type="text" name="optionA" required><br><br>
  
-        int correct = 0;
-        for (Question q : questions) {
-            String ans = req.getParameter("q_" + q.getId());
-            if (ans != null && ans.equalsIgnoreCase(q.getCorrectOption())) correct++;
-        }
-        int total = questions.size();
+        <label>Option B:</label><br>
+        <input type="text" name="optionB" required><br><br>
  
-        // Save attempt
-        UserAttempt ua = new UserAttempt();
-        ua.setUserId(user.getId());
-        ua.setQuizId(quizId);
-        ua.setScore(correct);
-        ua.setTotalQuestions(total);
+        <label>Option C:</label><br>
+        <input type="text" name="optionC" required><br><br>
  
-        UserAttemptDAO uad = new UserAttemptDAO();
-        uad.saveAttempt(ua);
+        <label>Option D:</label><br>
+        <input type="text" name="optionD" required><br><br>
  
-        resp.sendRedirect(req.getContextPath() + "/result?quizId=" + quizId + "&score=" + correct + "&total=" + total);
+        <label>Correct Option (A/B/C/D):</label><br>
+        <input type="text" name="correctOption" maxlength="1" required><br><br>
+ 
+        <button type="submit">Add Question</button>
+    </form>
+ 
+    <% if (request.getParameter("error") != null) { %>
+        <p style="color:red;">Failed to add question. Try again.</p>
+    <% } %>
+ 
+    <br>
+    <a href="../listQuestions?quizId=<%=quizId%>">Back to Question List</a>
+</body>
+</html>
+===admin/editQuiz.jsp===
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    Quiz quiz = (Quiz) request.getAttribute("quiz");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Quiz</title>
+</head>
+<body>
+    <h2>Edit Quiz</h2>
+ 
+    <form action="editQuiz" method="post">
+        <input type="hidden" name="id" value="<%=quiz.getId()%>">
+ 
+        <label>Quiz Name:</label><br>
+        <input type="text" name="quizName" value="<%=quiz.getName()%>" required><br><br>
+ 
+        <label>Description:</label><br>
+        <textarea name="description" required><%=quiz.getDescription()%></textarea><br><br>
+ 
+        <button type="submit">Update Quiz</button>
+    </form>
+ 
+    <% if (request.getParameter("error") != null) { %>
+        <p style="color:red;">Failed to update quiz. Try again.</p>
+    <% } %>
+ 
+    <br>
+    <a href="listQuizzes">Back to Quiz List</a>
+</body>
+</html>
+===admin/editQuestion.jsp===
+<%@ page import="quizportal.model.Question" %>
+ 
+<%
+    Question q = (Question) request.getAttribute("question");
+    int quizId = (int) request.getAttribute("quizId");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Question</title>
+</head>
+<body>
+ 
+<h2>Edit Question</h2>
+ 
+<form action="editQuestion" method="post">
+ 
+    <input type="hidden" name="id" value="<%= q.getId() %>">
+    <input type="hidden" name="quizId" value="<%= quizId %>">
+ 
+    Question:<br>
+    <input type="text" name="questionText" value="<%= q.getQuestionText() %>" required><br><br>
+ 
+    Option A:<br>
+    <input type="text" name="optionA" value="<%= q.getOptionA() %>" required><br><br>
+ 
+    Option B:<br>
+    <input type="text" name="optionB" value="<%= q.getOptionB() %>" required><br><br>
+ 
+    Option C:<br>
+    <input type="text" name="optionC" value="<%= q.getOptionC() %>" required><br><br>
+ 
+    Option D:<br>
+    <input type="text" name="optionD" value="<%= q.getOptionD() %>" required><br><br>
+ 
+    Correct Option:<br>
+    <select name="correctOption" required>
+        <option value="A" <%= q.getCorrectOption().equals("A") ? "selected" : "" %>>A</option>
+        <option value="B" <%= q.getCorrectOption().equals("B") ? "selected" : "" %>>B</option>
+        <option value="C" <%= q.getCorrectOption().equals("C") ? "selected" : "" %>>C</option>
+        <option value="D" <%= q.getCorrectOption().equals("D") ? "selected" : "" %>>D</option>
+    </select>
+    <br><br>
+ 
+    <button type="submit">Update Question</button>
+</form>
+ 
+<br>
+<a href="listQuestions?quizId=<%=quizId%>">Back to Question List</a>
+ 
+</body>
+</html>
+===admin/listQuestion.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Question" %>
+ 
+<%
+    List<Question> questions = (List<Question>) request.getAttribute("questions");
+	int quizId=Integer.parseInt(request.getParameter("quizId"));
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Questions List</title>
+</head>
+<body>
+    <h2>Questions for Quiz ID: <%=quizId%></h2>
+ 
+    <a href="admin/addQuestion.jsp?quizId=<%=quizId%>">Add New Question</a><br><br>
+ 
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Question</th>
+            <th>Option A</th>
+            <th>Option B</th>
+            <th>Option C</th>
+            <th>Option D</th>
+            <th>Correct</th>
+            <th>Actions</th>
+        </tr>
+ 
+        <%
+            if (questions != null) {
+                for (Question q : questions) {
+        %>
+        <tr>
+            <td><%=q.getId()%></td>
+            <td><%=q.getQuestionText()%></td>
+            <td><%=q.getOptionA()%></td>
+            <td><%=q.getOptionB()%></td>
+            <td><%=q.getOptionC()%></td>
+            <td><%=q.getOptionD()%></td>
+            <td><%=q.getCorrectOption()%></td>
+            <td>
+                <a href="editQuestion?id=<%=q.getId()%>&quizId=<%=quizId%>">Edit</a> |
+                <a href="deleteQuestion?id=<%=q.getId()%>&quizId=<%=quizId%>" onclick="return confirm('Delete this question?');">Delete</a>
+            </td>
+        </tr>
+        <%
+                }
+            }
+        %>
+    </table>
+ 
+    <br>
+    <a href="listQuizzes">Back to Quiz List</a>
+</body>
+</html>	
+===user/dashboard.jsp===
+<%@ page import="quizportal.model.User" %>
+<%
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        return;
     }
+%>
+<!DOCTYPE html>
+<html>
+<head><title>User Dashboard</title></head>
+<body>
+<h2>Welcome, <%= user.getName() %></h2>
+ 
+<table>
+<tr>
+    <td><a href="<%=request.getContextPath()%>/user/quizzes">Take Quiz</a></td>
+    <td><a href="<%=request.getContextPath()%>/user/history.jsp">Attempt History</a></td>
+    <td><a href="<%=request.getContextPath()%>/user/logout">Logout</a></td>
+</tr>
+</table>
+ 
+</body>
+</html>
+===user/quizzes.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
+%>
+<!DOCTYPE html>
+<html>
+<head><title>Available Quizzes</title></head>
+<body>
+<h2>Available Quizzes</h2>
+<table border="1">
+<tr><th>ID</th><th>Name</th><th>Description</th><th>Action</th></tr>
+<%
+if(quizzes!=null){
+   for(Quiz q:quizzes){
+%>
+<tr>
+    <td><%= q.getId() %></td>
+    <td><%= q.getName() %></td>
+    <td><%= q.getDescription() %></td>
+    <td>
+        <a href="<%=request.getContextPath()%>/startQuiz?quizId=<%=q.getId()%>">
+            Start
+        </a>
+        |
+        <a href="<%=request.getContextPath()%>/user/leaderboard?quizId=<%=q.getId()%>">
+            Leaderboard
+        </a>
+    </td>
+</tr>
+<%
+   }
 }
-
-why the SubmitQuizServlet file showing error , is this file necessary..?
-clear the error and give me the updated code
-          
+%>
+</table>
+<br>
+<a href="<%=request.getContextPath()%>/user/dashboard.jsp">Back to Dashboard</a>
+</body>
+</html>
+===user/history.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.UserAttempt" %>
+<%@ page import="quizportal.model.User" %>
+<%
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        return;
+    }
+ 
+    quizportal.dao.UserAttemptDAO dao = new quizportal.dao.UserAttemptDAO();
+    List<UserAttempt> attempts = dao.getAttemptsByUser(user.getId());
+%>
+<!DOCTYPE html>
+<html>
+<head><title>Attempt History</title></head>
+<body>
+<h2>Your Attempts</h2>
+<table border="1">
+<tr><th>Quiz ID</th><th>Score</th><th>Total</th><th>Time</th></tr>
+<% for (UserAttempt a : attempts) { %>
+  <tr>
+    <td><%= a.getQuizId() %></td>
+    <td><%= a.getScore() %></td>
+    <td><%= a.getTotalQuestions() %></td>
+    <td><%= a.getAttemptTime() %></td>
+  </tr>
+<% } %>
+</table>
+ 
+<br><a href="<%=request.getContextPath()%>/user/dashboard.jsp">Back</a>
+</body>
+</html>	
+===user/result.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.LeaderboardEntry" %>
+ 
+<%
+    List<LeaderboardEntry> leaderboard =
+        (List<LeaderboardEntry>) request.getAttribute("leaderboard");
+%>
+ 
+<h2>Your Result</h2>
+<p>Score: <b>${score}</b> / ${total}</p>
+ 
+<h3>Leaderboard</h3>
+ 
+<table border="1" cellpadding="8">
+<tr>
+    <th>Rank</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Score</th>
+</tr>
+ 
+<%
+if (leaderboard != null && !leaderboard.isEmpty()) {
+    for (LeaderboardEntry e : leaderboard) {
+%>
+<tr>
+    <td><%= e.getRank() %></td>
+    <td><%= e.getUserName() %></td>
+    <td><%= e.getEmail() %></td>
+    <td><%= e.getScore() %></td>
+</tr>
+<%
+    }
+} else {
+%>
+<tr>
+    <td colspan="4">No attempts yet</td>
+</tr>
+<%
+}
+%>
+</table>
+ 
+<br>
+<a href="<%=request.getContextPath()%>/user/quizzes">Back to Quizzes</a>
+ 
+===user/leaderboard.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.LeaderboardEntry" %>
+ 
+<%
+    List<LeaderboardEntry> leaderboard =
+        (List<LeaderboardEntry>) request.getAttribute("leaderboard");
+%>
+ 
+<!DOCTYPE html>
+<html>
+<head>
+<title>Quiz Leaderboard</title>
+</head>
+<body>
+ 
+<h2>Leaderboard</h2>
+ 
+<table border="1" cellpadding="10">
+<tr>
+    <th>Rank</th>
+    <th>User Name</th>
+    <th>Email</th>
+    <th>Score</th>
+</tr>
+ 
+<%
+if (leaderboard != null && !leaderboard.isEmpty()) {
+    for (LeaderboardEntry e : leaderboard) {
+%>
+<tr>
+    <td><%= e.getRank() %></td>
+    <td><%= e.getUserName() %></td>
+    <td><%= e.getEmail() %></td>
+    <td><%= e.getScore() %></td>
+</tr>
+<%
+    }
+} else {
+%>
+<tr>
+    <td colspan="4">No attempts yet</td>
+</tr>
+<%
+}
+%>
+</table>
+ 
+<br>
+<a href="<%=request.getContextPath()%>/user/quizzes">Back to Quizzes</a>
+ 
+</body>
+</html>
+===user/takeQuiz.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Question" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    Quiz quiz = (Quiz) request.getAttribute("quiz");
+    List<Question> questions = (List<Question>) request.getAttribute("questions");
+%>
+<!DOCTYPE html>
+<html>
+<head><title>Take Quiz</title></head>
+<body>
+<h2>Quiz: <%= quiz.getName() %></h2>
+ 
+<form action="<%=request.getContextPath()%>/submitQuiz" method="post">
+    <input type="hidden" name="quizId" value="<%=quiz.getId()%>" />
+    <%
+      for(Question q: questions){
+    %>
+      <div style="margin:12px;">
+        <p><strong>Q.<%=q.getId()%></strong> <%=q.getQuestionText()%></p>
+        <label><input type="radio" name="q_<%=q.getId()%>" value="A"> <%=q.getOptionA()%></label><br>
+        <label><input type="radio" name="q_<%=q.getId()%>" value="B"> <%=q.getOptionB()%></label><br>
+        <label><input type="radio" name="q_<%=q.getId()%>" value="C"> <%=q.getOptionC()%></label><br>
+        <label><input type="radio" name="q_<%=q.getId()%>" value="D"> <%=q.getOptionD()%></label><br>
+      </div>
+    <%
+      }
+    %>
+ 
+    <button type="submit">Submit Quiz</button>
+</form>
+ 
+</body>
+</html>
+===user/register.jsp===
+<!DOCTYPE html>
+<html>
+<head><title>User Registration</title></head>
+<body>
+<h2>User Registration</h2>
+<form action="${pageContext.request.contextPath}/registerUser" method="post">
+    Name: <input type="text" name="name" required><br>
+    Email: <input type="email" name="email" required><br>
+    Password: <input type="password" name="password" required><br>
+    <button type="submit">Register</button>
+</form>
+<% if(request.getParameter("error")!=null){ %>
+<p style="color:red">Registration error or email exists</p>
+<% } %>
+</body>
+</html>
