@@ -1,31 +1,11 @@
-its happy to see that all the code works properly and no errors occurs now.
-Now i need to make one small update in user dashboard, user will able to see the leaderboard for each quiz listed in the table.
-user will able to see the leaderboard for a quiz and also the user's position in that leaderboard.
-if multiple user has same result in the leaderboard , sort them based on their name
-i will give you the user dashboard.jsp file , read it and generate the updated code
-if you need further clarification , then ask me the questions and then start generating the codes.
-===dashboard.jsp===
-<%@ page import="quizportal.model.User" %>
-<%
-    User user = (User) session.getAttribute("user");
-    if (user == null) {
-        response.sendRedirect(request.getContextPath() + "/index.jsp");
-        return;
-    }
-%>
-<!DOCTYPE html>
-<html>
-<head><title>User Dashboard</title></head>
-<body>
-<h2>Welcome, <%= user.getName() %></h2>
- 
-<table>
-<tr>
-    <td><a href="<%=request.getContextPath()%>/user/quizzes">Take Quiz</a></td>
-    <td><a href="<%=request.getContextPath()%>/user/history.jsp">Attempt History</a></td>
-    <td><a href="<%=request.getContextPath()%>/user/logout">Logout</a></td>
-</tr>
-</table>
- 
-</body>
-</html>
+CREATE TABLE user_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    quiz_id INT,
+    score INT,
+    total_questions INT,
+    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (quiz_id) REFERENCES quiz(id)
+);
+
