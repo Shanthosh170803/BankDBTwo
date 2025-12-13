@@ -1,1 +1,123 @@
-C:\Users\shanthosh.s1\eclipse-workspace\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\OnlineQuizPortal\WEB-INF\classes\quizportal\util
+===UserAttemptDAO===
+package quizportal.dao;
+import java.sql.*;
+import java.util.*;
+import quizportal.model.LeaderboardEntry;
+import quizportal.model.UserAttempt;
+import quizportal.util.DBConnection;
+
+public class UserAttemptDAO {
+
+	public List<LeaderboardEntry> getLeaderboardByQuiz(int quizId) {
+		List<LeaderboardEntry> list = new ArrayList<>();
+
+		String sql = "SELECT u.id, u.name, u.email, MAX(ua.score) AS score " + "FROM user_attempts ua "
+				+ "JOIN users u ON ua.user_id = u.id " + "WHERE ua.quiz_id = ? " + "GROUP BY u.id, u.name, u.email "
+				+ "ORDER BY score DESC, u.name ASC";
+
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setInt(1, quizId);
+			ResultSet rs = ps.executeQuery();
+
+			int rank = 1;
+			while (rs.next()) {
+				LeaderboardEntry e = new LeaderboardEntry();
+				e.setUserId(rs.getInt("id"));
+				e.setUserName(rs.getString("name"));
+				e.setEmail(rs.getString("email"));
+				e.setScore(rs.getInt("score"));
+				e.setRank(rank++);
+				list.add(e);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
+
+	public List<UserAttempt> getAttemptsByUser(int userId) {
+
+		List<UserAttempt> list = new ArrayList<>();
+
+		String sql = "SELECT id, quiz_id, score, total_questions, attempt_time " + "FROM user_attempts "
+				+ "WHERE user_id = ? " + "ORDER BY attempt_time DESC";
+
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setInt(1, userId);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				UserAttempt ua = new UserAttempt();
+				ua.setId(rs.getInt("id"));
+				ua.setQuizId(rs.getInt("quiz_id"));
+				ua.setScore(rs.getInt("score"));
+				ua.setTotalQuestions(rs.getInt("total_questions"));
+				ua.setAttemptTime(rs.getTimestamp("attempt_time"));
+
+				list.add(ua);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
+}
+===SubmitQuizServlet===
+package quizportal.servlet.user;
+ 
+import quizportal.dao.QuestionDAO;
+import quizportal.dao.UserAttemptDAO;
+import quizportal.model.Question;
+import quizportal.model.User;
+import quizportal.model.UserAttempt;
+ 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.List;
+ 
+@WebServlet("/submitQuiz")
+public class SubmitQuizServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            return;
+        }
+        User user = (User) session.getAttribute("user");
+ 
+        int quizId = Integer.parseInt(req.getParameter("quizId"));
+        QuestionDAO qdao = new QuestionDAO();
+        List<Question> questions = qdao.getQuestionsByQuizId(quizId);
+ 
+        int correct = 0;
+        for (Question q : questions) {
+            String ans = req.getParameter("q_" + q.getId());
+            if (ans != null && ans.equalsIgnoreCase(q.getCorrectOption())) correct++;
+        }
+        int total = questions.size();
+ 
+        // Save attempt
+        UserAttempt ua = new UserAttempt();
+        ua.setUserId(user.getId());
+        ua.setQuizId(quizId);
+        ua.setScore(correct);
+        ua.setTotalQuestions(total);
+ 
+        UserAttemptDAO uad = new UserAttemptDAO();
+        uad.saveAttempt(ua);
+ 
+        resp.sendRedirect(req.getContextPath() + "/result?quizId=" + quizId + "&score=" + correct + "&total=" + total);
+    }
+}
+
+why the SubmitQuizServlet file showing error , is this file necessary..?
+clear the error and give me the updated code
+          
