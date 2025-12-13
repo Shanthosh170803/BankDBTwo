@@ -1,75 +1,159 @@
-the new user login and existing user login work correctly
-but the admin cant able to login in and it shows 404 error
-in my database i insert:
-CREATE TABLE admin (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE,
-    password VARCHAR(50)
-);
+===ListQuizzesServlet.java===
+package quizportal.servlet.admin;
  
-INSERT INTO admin (username, password) VALUES ('admin', 'admin123');
+import quizportal.dao.QuizDAO;
+import quizportal.model.Quiz;
+ 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+import java.util.List;
+ 
+@WebServlet("/listQuizzes")
+public class ListQuizzesServlet extends HttpServlet {
+ 
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+ 
+        try {
+            QuizDAO quizDAO = new QuizDAO();
+            List<Quiz> quizzes = quizDAO.getAllQuizzes();
+ 
+            request.setAttribute("quizzes", quizzes);
+            request.getRequestDispatcher("/admin/quizzes.jsp").forward(request, response);
+ 
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().println("Error fetching quizzes: " + e.getMessage());
+        }
+    }
+}
 
-if i try to login as admin, it shows
-http://localhost:9090/OnlineQuizPortal/adminLogin
-HTTP Status 404 – Not Found
-Type Status Report
-
-Message The requested resource [/OnlineQuizPortal/adminLogin] is not available
-
-Description The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.
-
-Apache Tomcat/9.0.100
-
-i will give my files regard to make a check related to admin login
-===index.jsp===
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Online Quiz Portal - Login</title>
-</head>
-<body>
+===QuizDAO.java===
+package quizportal.dao;
  
-<h1>Online Quiz Portal</h1>
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
  
-<h2>Admin Login</h2>
-<form action="adminLogin" method="post">
-    <label>Admin Username:</label>
-    <input type="text" name="username" required><br>
+import quizportal.model.Quiz;
+import quizportal.util.DBConnection;
  
-    <label>Password:</label>
-    <input type="password" name="password" required><br>
+public class QuizDAO {
  
-    <button type="submit">Login as Admin</button>
-</form>
+    public boolean addQuiz(Quiz quiz) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "INSERT INTO quiz(name, description) VALUES (?, ?)";
  
-<hr>
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, quiz.getName());
+            pst.setString(2, quiz.getDescription());
  
-<h2>User Login</h2>
-<form action="userLogin" method="post">
-    <label>Email:</label>
-    <input type="email" name="email" required><br>
+            return pst.executeUpdate() > 0;
  
-    <label>Password:</label>
-    <input type="password" name="password" required><br>
+        } catch (Exception e) {
+            System.out.println("Add Quiz Error: " + e.getMessage());
+        }
+        return false;
+    }
  
-    <button type="submit">Login as User</button>
-</form>
+    public List<Quiz> getAllQuizzes() {
+        List<Quiz> list = new ArrayList<>();
  
-<br>
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM quiz";
  
-<a href="user/register.jsp">New User? Register Here</a>
+            PreparedStatement pst = conn.prepareStatement(sql);
+            ResultSet rs = pst.executeQuery();
  
-</body>
-</html>
+            while (rs.next()) {
+                Quiz q = new Quiz();
+                q.setId(rs.getInt("id"));
+                q.setName(rs.getString("name"));
+                q.setDescription(rs.getString("description"));
+                list.add(q);
+            }
+ 
+        } catch (Exception e) {
+            System.out.println("Get All Quizzes Error: " + e.getMessage());
+        }
+ 
+        return list;
+    }
+ 
+    public Quiz getQuizById(int id) {
+        Quiz quiz = null;
+ 
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM quiz WHERE id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, id);
+ 
+            ResultSet rs = pst.executeQuery();
+ 
+            if (rs.next()) {
+                quiz = new Quiz();
+                quiz.setId(rs.getInt("id"));
+                quiz.setName(rs.getString("name"));
+                quiz.setDescription(rs.getString("description"));
+            }
+ 
+        } catch (Exception e) {
+            System.out.println("Get Quiz Error: " + e.getMessage());
+        }
+ 
+        return quiz;
+    }
+ 
+    public boolean updateQuiz(Quiz quiz) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "UPDATE quiz SET name=?, description=? WHERE id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, quiz.getName());
+            pst.setString(2, quiz.getDescription());
+            pst.setInt(3, quiz.getId());
+ 
+            return pst.executeUpdate() > 0;
+ 
+        } catch (Exception e) {
+            System.out.println("Update Quiz Error: " + e.getMessage());
+        }
+        return false;
+    }
+ 
+    public boolean deleteQuiz(int id) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "DELETE FROM quiz WHERE id=?";
+ 
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, id);
+ 
+            return pst.executeUpdate() > 0;
+ 
+        } catch (Exception e) {
+            System.out.println("Delete Quiz Error: " + e.getMessage());
+        }
+        return false;
+    }
+}
 ===AdminLoginServlet.java===
 package quizportal.servlet.admin;
  
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
  
 import quizportal.dao.AdminDAO;
 import quizportal.model.Admin;
@@ -99,55 +183,3 @@ public class AdminLoginServlet extends HttpServlet {
         }
     }
 }
-===quizzes.jsp===
-<%@ page import="java.util.List" %>
-<%@ page import="quizportal.model.Quiz" %>
-<%
-    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
-%>
- 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>All Quizzes</title>
-</head>
-<body>
-    <h2>All Quizzes</h2>
-    <a href="/OnlineQuizPortal/admin/addQuiz.jsp">Add New Quiz</a><br><br>
- 
-    <table border="1" cellpadding="10">
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Actions</th>
-        </tr>
-        <%
-            if (quizzes != null) {
-                for (Quiz q : quizzes) {
-        %>
-        <tr>
-            <td><%= q.getId() %></td>
-            <td><%= q.getName() %></td>
-            <td><%= q.getDescription() %></td>
-            <td>
-                <a href="editQuiz?id=<%=q.getId()%>">Edit</a> |
-                <a href="admin/addQuestion.jsp?quizId=<%=q.getId()%>">Add Question</a> |
-                <a href="deleteQuiz?id=<%=q.getId()%>" onclick="return confirm('Delete this quiz?');">Delete</a>
-                
-            </td>
-        </tr>
-        <%
-                }
-            }
-        %>
-    </table>
-</body>
-</html>
-
-paths:
-  OnlineQuizPortal/src/main/webapp/index.jsp
-  OnlineQuizPortal/src/main/webapp/admin/quizzes.jsp
-  OnlineQuizPortal/src/main/java/quizportal.servlet.admin/AdminLoginServlet.java
-
-Also in AdminLoginServlet.java has jakarta package are imports, do we need to change it to javax or no need to change?
