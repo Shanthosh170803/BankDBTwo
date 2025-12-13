@@ -1,11 +1,40 @@
-CREATE TABLE user_attempts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    quiz_id INT,
-    score INT,
-    total_questions INT,
-    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (quiz_id) REFERENCES quiz(id)
-);
+You generate the leaderboard to display in user dashboard
+but i want leaderboard to display in quizzes.jsp page
+===quizzes.jsp===
+<%@ page import="java.util.List" %>
+<%@ page import="quizportal.model.Quiz" %>
+<%
+    List<Quiz> quizzes = (List<Quiz>) request.getAttribute("quizzes");
+%>
+<!DOCTYPE html>
+<html>
+<head><title>Available Quizzes</title></head>
+<body>
+<h2>Available Quizzes</h2>
+<table border="1">
+<tr><th>ID</th><th>Name</th><th>Description</th><th>Action</th></tr>
+<%
+if(quizzes!=null){
+   for(Quiz q:quizzes){
+%>
+<tr>
+<td><%=q.getId()%></td>
+<td><%=q.getName()%></td>
+<td><%=q.getDescription()%></td>
+<td><a href="<%=request.getContextPath()%>/startQuiz?quizId=<%=q.getId()%>">Start</a></td>
+</tr>
+<%
+   }
+}
+%>
+</table>
+<br>
+<a href="<%=request.getContextPath()%>/user/dashboard.jsp">Back to Dashboard</a>
+</body>
+</html>
 
+in the above code , inside the action colum i want the leaderboard option along with start quiz option, if user click the leaderboard link it will give the leaderboard will be display based on the quiz id
+based on the quiz id the leaderboard will have the table of records having the user name who attended the quiz and their email id and theie score 
+
+if you need clarification , ask me the questions then start generating the code
+        
